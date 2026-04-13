@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Hue: 270 (Vibrant Violet) - high energy, playful */
+    --brand-hue: 270;
+    
+    /* Light Mode Palette */
+    /* Neutrals tinted with hue 270, chroma 0.01 for cohesion */
+    --background: 98% 0.01 var(--brand-hue);
+    --foreground: 20% 0.03 var(--brand-hue);
+    --card: 100% 0 var(--brand-hue);
+    --card-foreground: 20% 0.03 var(--brand-hue);
+    --kanban-column: 96% 0.01 var(--brand-hue);
+    
+    /* Primary Accent: Vibrant Violet */
+    --primary: 60% 0.22 var(--brand-hue);
+    --primary-foreground: 98% 0.01 var(--brand-hue);
+    
+    /* Secondary/Muted: Soft tint */
+    --secondary: 94% 0.02 var(--brand-hue);
+    --secondary-foreground: 30% 0.05 var(--brand-hue);
+    --muted: 94% 0.02 var(--brand-hue);
+    --muted-foreground: 55% 0.03 var(--brand-hue);
+    
+    /* Interactive */
+    --accent: 92% 0.03 var(--brand-hue);
+    --accent-foreground: 30% 0.05 var(--brand-hue);
+    --border: 90% 0.02 var(--brand-hue);
+    --input: 90% 0.02 var(--brand-hue);
+    --ring: 60% 0.22 var(--brand-hue);
+    
+    /* Destructive */
+    --destructive: 55% 0.2 20;
+    --destructive-foreground: 98% 0.01 20;
+    
+    /* Shape & Motion */
+    --radius: 1rem;
+    --ease-out-spring: cubic-bezier(0.175, 0.885, 0.32, 1.15); /* Playful bounce for drops */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* Snappy UI */
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .dark {
+    /* Dark Mode Palette */
+    /* Dark surfaces use lightness for depth, maintaining the hue tint */
+    --background: 14% 0.02 var(--brand-hue);
+    --foreground: 95% 0.01 var(--brand-hue);
+    
+    /* Card is slightly lighter than background for elevation */
+    --card: 18% 0.02 var(--brand-hue);
+    --card-foreground: 95% 0.01 var(--brand-hue);
+    --kanban-column: 16% 0.02 var(--brand-hue);
+    
+    /* Primary stays vibrant but slightly lighter for dark mode contrast */
+    --primary: 70% 0.18 var(--brand-hue);
+    --primary-foreground: 14% 0.02 var(--brand-hue);
+    
+    /* Secondary/Muted */
+    --secondary: 22% 0.03 var(--brand-hue);
+    --secondary-foreground: 95% 0.01 var(--brand-hue);
+    --muted: 22% 0.03 var(--brand-hue);
+    --muted-foreground: 70% 0.03 var(--brand-hue);
+    
+    /* Interactive */
+    --accent: 26% 0.04 var(--brand-hue);
+    --accent-foreground: 95% 0.01 var(--brand-hue);
+    --border: 24% 0.03 var(--brand-hue);
+    --input: 24% 0.03 var(--brand-hue);
+    --ring: 70% 0.18 var(--brand-hue);
+    
+    /* Destructive */
+    --destructive: 65% 0.2 20;
+    --destructive-foreground: 98% 0.01 20;
+  }
+}
+
+@layer base {
+  * {
+    border-color: oklch(var(--border));
+    /* Smooth out global layout transitions, except for transforms */
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: var(--ease-out-quart);
+    transition-duration: 200ms;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: oklch(var(--background));
+    color: oklch(var(--foreground));
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Custom Scrollbar for Kanban Board */
+.kanban-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.kanban-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: oklch(var(--muted-foreground) / 0.3);
+  border-radius: 9999px;
+}
+.kanban-scroll::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--muted-foreground) / 0.5);
+}
+
+/* 
+  High-Impact UI Animations 
+  Following 100/300/500 duration rules and exponential easing
+*/
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes board-entrance {
+  from { opacity: 0; transform: scale(0.98) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Staggered Entrance Utility Classes */
+.animate-slide-up {
+  animation: slide-up-fade 400ms var(--ease-out-quart) backwards;
+}
+
+.animate-board-card {
+  animation: board-entrance 500ms var(--ease-out-expo) backwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 300ms var(--ease-out-quart) backwards;
+}
+
+/* Interactive Feedback Overrides */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0.1;
+  transition: transform 300ms var(--ease-out-expo), opacity 300ms ease;
+}
+
+.btn-ripple:active::after {
+  transform: translate(-50%, -50%) scale(2);
+  opacity: 0;
+  transition: 0s;
+}
