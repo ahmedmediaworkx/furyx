@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import type { UserRole } from "@/lib/roles";
 
 type RegisterInput = {
   name: string;
@@ -54,7 +55,8 @@ export async function registerUser(input: RegisterInput) {
 
   return {
     id: user._id.toString(),
-    name: user.profile.displayName,
-    email: user.contact.email
+    name: user.profile?.displayName ?? user.contact?.email ?? "User",
+    email: user.contact?.email ?? normalizedEmail,
+    role: user.role as UserRole
   };
 }

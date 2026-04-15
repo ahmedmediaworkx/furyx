@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   try {
     const payload = await request.json();
-    const board = await createBoard(session.user.id, payload);
+    const board = await createBoard(session.user.id, session.user.role, payload);
     return NextResponse.json({ board }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create board";

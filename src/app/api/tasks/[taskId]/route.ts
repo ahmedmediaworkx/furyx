@@ -18,7 +18,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     const { taskId } = await context.params;
     const payload = await request.json();
-    const task = await updateTask(session.user.id, taskId, payload);
+    const task = await updateTask(session.user.id, session.user.role, taskId, payload);
     emitBoardEvent(task.boardId, BOARD_EVENTS.changed, { boardId: task.boardId, action: "task.updated" });
     return NextResponse.json({ task });
   } catch (error) {
@@ -35,7 +35,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   try {
     const { taskId } = await context.params;
-    const result = await deleteTask(session.user.id, taskId);
+    const result = await deleteTask(session.user.id, session.user.role, taskId);
     emitBoardEvent(result.boardId, BOARD_EVENTS.changed, { boardId: result.boardId, action: "task.deleted" });
     return NextResponse.json({ success: true });
   } catch (error) {

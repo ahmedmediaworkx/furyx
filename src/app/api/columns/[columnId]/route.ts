@@ -18,7 +18,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     const { columnId } = await context.params;
     const payload = await request.json();
-    const column = await updateColumn(session.user.id, columnId, payload);
+    const column = await updateColumn(session.user.id, session.user.role, columnId, payload);
     emitBoardEvent(column.boardId, BOARD_EVENTS.changed, { boardId: column.boardId, action: "column.updated" });
     return NextResponse.json({ column });
   } catch (error) {
@@ -35,7 +35,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   try {
     const { columnId } = await context.params;
-    const result = await deleteColumn(session.user.id, columnId);
+    const result = await deleteColumn(session.user.id, session.user.role, columnId);
     emitBoardEvent(result.boardId, BOARD_EVENTS.changed, { boardId: result.boardId, action: "column.deleted" });
     return NextResponse.json({ success: true });
   } catch (error) {

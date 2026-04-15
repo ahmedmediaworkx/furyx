@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   try {
     const payload = await request.json();
-    const column = await createColumn(session.user.id, payload);
+    const column = await createColumn(session.user.id, session.user.role, payload);
     emitBoardEvent(column.boardId, BOARD_EVENTS.changed, { boardId: column.boardId, action: "column.created" });
     return NextResponse.json({ column }, { status: 201 });
   } catch (error) {

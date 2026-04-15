@@ -55,8 +55,6 @@ UserSchema.virtual("name").get(function getDisplayName(this: any) {
   return this.profile?.displayName || [this.profile?.firstName, this.profile?.lastName].filter(Boolean).join(" ").trim() || this.contact?.email || "";
 });
 
-UserSchema.index({ "contact.email": 1 }, { unique: true });
-
 if (mongoose.models.User) {
   mongoose.deleteModel("User");
 }

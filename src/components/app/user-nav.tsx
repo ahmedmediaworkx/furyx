@@ -1,10 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
-import { LogOut, Moon, Sun, Palette, ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut, Moon, Palette, Settings2, Sun } from "lucide-react";
+import { getRoleLabel } from "@/lib/roles";
 
 export function UserNav() {
+  const { data: session } = useSession();
+
+  const role = session?.user?.role ?? "member";
+  const displayName = session?.user?.name ?? "User";
+  const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "U";
+
   const toggleTheme = () => {
     const isDark = document.documentElement.classList.contains("dark");
     if (isDark) {
@@ -25,7 +34,11 @@ export function UserNav() {
       <DropdownMenu.Trigger asChild>
         <button className="flex items-center gap-2 rounded-full border border-border bg-background p-1 pr-3 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/20">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-            U
+            {avatarInitial}
+          </div>
+          <div className="hidden flex-col items-start leading-tight sm:flex">
+            <span className="text-sm font-semibold text-foreground">{displayName}</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{getRoleLabel(role)}</span>
           </div>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </button>
@@ -39,8 +52,26 @@ export function UserNav() {
         >
           <div className="px-2 py-2.5">
             <p className="text-sm font-bold text-foreground">User Settings</p>
-            <p className="text-xs text-muted-foreground">Manage your workspace</p>
+            <p className="text-xs text-muted-foreground">{session?.user?.email ?? "Manage your workspace"}</p>
           </div>
+
+          <div className="px-2 pb-1">
+            <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground/80">Current Role</p>
+            <div className="rounded-xl border border-border/60 bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground">
+              {getRoleLabel(role)}
+            </div>
+          </div>
+
+          <DropdownMenu.Separator className="my-1 h-px bg-border/40" />
+
+          <DropdownMenu.Item asChild>
+            <Link href="/settings" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-foreground transition-all hover:bg-muted/80 hover:scale-[1.02] active:scale-[0.98] focus:outline-none">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Settings2 className="h-4 w-4" />
+              </div>
+              Open Settings
+            </Link>
+          </DropdownMenu.Item>
 
           <DropdownMenu.Separator className="my-1 h-px bg-border/40" />
 

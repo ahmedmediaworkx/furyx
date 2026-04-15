@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   try {
     const payload = await request.json();
-    const task = await createTask(session.user.id, payload);
+    const task = await createTask(session.user.id, session.user.role, payload);
     emitBoardEvent(task.boardId, BOARD_EVENTS.changed, { boardId: task.boardId, action: "task.created" });
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {

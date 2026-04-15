@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import type { UserRole } from "@/lib/roles";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -33,15 +34,16 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isValid = await bcrypt.compare(password, user.security.hash);
+        const isValid = await bcrypt.compare(password, user.security!.hash);
         if (!isValid) {
           return null;
         }
 
         return {
           id: user._id.toString(),
-          name: user.profile.displayName,
-          email: user.contact.email
+          name: user.profile?.displayName ?? user.contact?.email ?? "User",
+          email: user.contact?.email ?? email,
+          role: user.role as UserRole
         };
       }
     })
@@ -50,12 +52,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role as UserRole;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id;
+        session.user.role = (token.role as UserRole) ?? "member";
       }
       return session;
     }

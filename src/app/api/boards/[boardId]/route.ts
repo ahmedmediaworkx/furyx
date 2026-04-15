@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     const { boardId } = await context.params;
     const payload = await request.json();
-    const board = await updateBoard(boardId, session.user.id, payload);
+    const board = await updateBoard(boardId, session.user.id, session.user.role, payload);
     emitBoardEvent(boardId, BOARD_EVENTS.changed, { boardId, action: "board.updated" });
     return NextResponse.json({ board });
   } catch (error) {
@@ -51,7 +51,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   try {
     const { boardId } = await context.params;
-    await deleteBoard(boardId, session.user.id);
+    await deleteBoard(boardId, session.user.id, session.user.role);
     emitBoardEvent(boardId, BOARD_EVENTS.changed, { boardId, action: "board.deleted" });
     return NextResponse.json({ success: true });
   } catch (error) {

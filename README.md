@@ -215,3 +215,15 @@ If you are not an engineer, think of FuryX as a shared digital whiteboard for wo
 ## Intended Outcome
 
 FuryX should help teams move faster, stay organized, and reduce confusion about who is doing what.
+
+## AWS Deployment
+
+If you want to run FuryX on AWS, see [docs/aws-deployment.md](docs/aws-deployment.md).
+
+The deployment path is container-first:
+
+- Build the app with Docker
+- Push the image to Amazon ECR
+- Run it on ECS Fargate behind an Application Load Balancer
+- Store secrets in AWS Secrets Manager
+- Keep MongoDB in Atlas or move it to DocumentDB if you want a fully AWS-managed data layer

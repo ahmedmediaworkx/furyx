@@ -1,4 +1,7 @@
 import { connectDB } from "@/lib/db";
+import { canEditWorkspace } from "@/lib/permissions";
+import type { UserRole } from "@/lib/roles";
+import { assertBoardAccess } from "@/server/services/board-service";
 import { Board } from "@/models/Board";
 import { Column } from "@/models/Column";
 import { Task } from "@/models/Task";
@@ -23,24 +26,17 @@ function serializeTask(task: any) {
   };
 }
 
-async function assertAccess(boardId: string, userId: string) {
-  const board = await Board.findById(boardId);
-  if (!board) {
-    throw new Error("Board not found");
-  }
-
-  const isOwner = toId(board.ownerId) === userId;
-  const isMember = (board.memberIds ?? []).some((member: any) => toId(member) === userId);
-
-  if (!isOwner && !isMember) {
-    throw new Error("You do not have access to this board");
+function assertCanEditBoard(userRole: UserRole) {
+  if (!canEditWorkspace(userRole)) {
+    throw new Error("Viewer accounts cannot edit tasks");
   }
 }
 
-export async function createTask(userId: string, input: any) {
+export async function createTask(userId: string, userRole: UserRole, input: any) {
   await connectDB();
   const parsed = taskSchema.parse(input);
-  await assertAccess(parsed.boardId, userId);
+  await assertBoardAccess(parsed.boardId, userId);
+  assertCanEditBoard(userRole);
 
   const task = await Task.create({
     boardId: parsed.boardId,
@@ -57,14 +53,15 @@ export async function createTask(userId: string, input: any) {
   return serializeTask(task);
 }
 
-export async function updateTask(userId: string, taskId: string, input: Record<string, unknown>) {
+export async function updateTask(userId: string, userRole: UserRole, taskId: string, input: Record<string, unknown>) {
   await connectDB();
   const task = await Task.findById(taskId);
   if (!task) {
     throw new Error("Task not found");
   }
 
-  await assertAccess(toId(task.boardId), userId);
+  await assertBoardAccess(toId(task.boardId), userId);
+  assertCanEditBoard(userRole);
 
   const move = taskMoveSchema.safeParse(input);
   const payload: Record<string, unknown> = { ...input };
@@ -90,14 +87,15 @@ export async function updateTask(userId: string, taskId: string, input: Record<s
   return serializeTask(updated);
 }
 
-export async function deleteTask(userId: string, taskId: string) {
+export async function deleteTask(userId: string, userRole: UserRole, taskId: string) {
   await connectDB();
   const task = await Task.findById(taskId);
   if (!task) {
     throw new Error("Task not found");
   }
 
-  await assertAccess(toId(task.boardId), userId);
+  await assertBoardAccess(toId(task.boardId), userId);
+  assertCanEditBoard(userRole);
   await Task.deleteOne({ _id: taskId });
   return { success: true, boardId: toId(task.boardId) };
 }

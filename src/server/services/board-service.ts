@@ -1,5 +1,7 @@
 import { Types } from "mongoose";
 import { connectDB } from "@/lib/db";
+import { canCreateWorkspace, canManageWorkspace } from "@/lib/permissions";
+import type { UserRole } from "@/lib/roles";
 import { Board } from "@/models/Board";
 import { Column } from "@/models/Column";
 import { Task } from "@/models/Task";
@@ -43,7 +45,7 @@ function serializeTask(task: any) {
   };
 }
 
-async function assertBoardAccess(boardId: string, userId: string) {
+export async function assertBoardAccess(boardId: string, userId: string) {
   const board = await Board.findById(boardId);
   if (!board) {
     throw new Error("Board not found");
@@ -59,14 +61,27 @@ async function assertBoardAccess(boardId: string, userId: string) {
   return board;
 }
 
+function assertCanCreateWorkspace(userRole: UserRole) {
+  if (!canCreateWorkspace(userRole)) {
+    throw new Error("Viewer accounts cannot create boards");
+  }
+}
+
+function assertCanManageWorkspace(userRole: UserRole) {
+  if (!canManageWorkspace(userRole)) {
+    throw new Error("You do not have permission to manage boards");
+  }
+}
+
 export async function listBoardsForUser(userId: string) {
   await connectDB();
   const boards = await Board.find({ $or: [{ ownerId: userId }, { memberIds: userId }] }).sort({ createdAt: -1 });
   return boards.map(serializeBoard);
 }
 
-export async function createBoard(userId: string, input: { name: string; description?: string }) {
+export async function createBoard(userId: string, userRole: UserRole, input: { name: string; description?: string }) {
   await connectDB();
+  assertCanCreateWorkspace(userRole);
   const parsed = boardSchema.parse(input);
   const board = await Board.create({
     name: parsed.name,
@@ -105,9 +120,10 @@ export async function getBoardWithData(boardId: string, userId: string) {
   };
 }
 
-export async function updateBoard(boardId: string, userId: string, input: { name?: string; description?: string }) {
+export async function updateBoard(boardId: string, userId: string, userRole: UserRole, input: { name?: string; description?: string }) {
   await connectDB();
   await assertBoardAccess(boardId, userId);
+  assertCanManageWorkspace(userRole);
 
   const board = await Board.findByIdAndUpdate(boardId, input, { new: true });
   if (!board) {
@@ -117,9 +133,10 @@ export async function updateBoard(boardId: string, userId: string, input: { name
   return serializeBoard(board);
 }
 
-export async function deleteBoard(boardId: string, userId: string) {
+export async function deleteBoard(boardId: string, userId: string, userRole: UserRole) {
   await connectDB();
   const board = await assertBoardAccess(boardId, userId);
+  assertCanManageWorkspace(userRole);
   await Promise.all([Board.deleteOne({ _id: board._id }), Column.deleteMany({ boardId }), Task.deleteMany({ boardId })]);
   return { success: true };
 }

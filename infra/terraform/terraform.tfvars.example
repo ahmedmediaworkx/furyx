@@ -1,0 +1,4 @@
+aws_region      = "us-east-1"
+nextauth_url    = "http://your-alb-dns-or-domain"
+nextauth_secret = "replace-with-a-long-random-secret"
+mongodb_uri     = "mongodb+srv://<user>:<pass>@cluster.mongodb.net/furyx"
