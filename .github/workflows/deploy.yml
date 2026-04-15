@@ -77,7 +77,8 @@ jobs:
                 "environment": [
                   {"name": "NODE_ENV", "value": "production"},
                   {"name": "PORT", "value": "3000"},
-                  {"name": "NEXTAUTH_URL", "value": "http://furyx-alb-387972706.us-east-1.elb.amazonaws.com"}
+                  {"name": "NEXTAUTH_URL", "value": "http://furyx-alb-387972706.us-east-1.elb.amazonaws.com"},
+                  {"name": "REDIS_URL", "value": "redis://furyx-redis.sft8zj.0001.use1.cache.amazonaws.com:6379"}
                 ],
                 "secrets": [
                   {"name": "NEXTAUTH_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:312527861191:secret:furyx/NEXTAUTH_SECRET-MLfzg2"},
