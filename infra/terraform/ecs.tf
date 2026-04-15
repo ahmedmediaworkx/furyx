@@ -71,7 +71,8 @@ resource "aws_ecs_task_definition" "furyx" {
     environment = [
       { name = "NODE_ENV", value = "production" },
       { name = "PORT", value = "3000" },
-      { name = "NEXTAUTH_URL", value = var.nextauth_url }
+      { name = "NEXTAUTH_URL", value = var.nextauth_url },
+      { name = "REDIS_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379" }
     ]
 
     secrets = [

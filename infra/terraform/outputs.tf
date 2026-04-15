@@ -7,3 +7,8 @@ output "ecr_repository_url" {
   description = "ECR repository URL for pushing images"
   value       = aws_ecr_repository.furyx.repository_url
 }
+
+output "redis_endpoint" {
+  description = "ElastiCache Redis endpoint"
+  value       = aws_elasticache_cluster.redis.cache_nodes[0].address
+}
