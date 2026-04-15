@@ -3,14 +3,23 @@ import { canEditWorkspace } from "@/lib/permissions";
 import type { UserRole } from "@/lib/roles";
 import { assertBoardAccess } from "@/server/services/board-service";
 import { Column } from "@/models/Column";
-import { Board } from "@/models/Board";
 import { columnSchema } from "@/lib/validators";
+import { Types } from "mongoose";
 
-function toId(value: any) {
+type IdValue = Types.ObjectId | string;
+
+type ColumnRecord = {
+  _id: IdValue;
+  boardId: IdValue;
+  name: string;
+  order: number;
+};
+
+function toId(value: IdValue) {
   return value.toString();
 }
 
-function serializeColumn(column: any) {
+function serializeColumn(column: ColumnRecord) {
   return {
     _id: toId(column._id),
     boardId: toId(column.boardId),
@@ -42,14 +51,14 @@ export async function createColumn(userId: string, userRole: UserRole, input: { 
 
 export async function updateColumn(userId: string, userRole: UserRole, columnId: string, input: { name?: string; order?: number }) {
   await connectDB();
-  const column = await Column.findById(columnId);
+  const column = (await Column.findById(columnId)) as ColumnRecord | null;
   if (!column) {
     throw new Error("Column not found");
   }
 
   await assertBoardAccess(toId(column.boardId), userId);
   assertCanEditBoard(userRole);
-  const updated = await Column.findByIdAndUpdate(columnId, input, { new: true });
+  const updated = (await Column.findByIdAndUpdate(columnId, input, { new: true })) as ColumnRecord | null;
   if (!updated) {
     throw new Error("Column not found");
   }

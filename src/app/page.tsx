@@ -49,7 +49,7 @@ export default async function LandingPage() {
           </div>
           
           <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1] animate-slide-up" style={{ animationDelay: '100ms' }}>
-            Work moves faster when it's <span className="text-primary">fun.</span>
+            Work moves faster when it&apos;s <span className="text-primary">fun.</span>
           </h1>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 animate-slide-up" style={{ animationDelay: '150ms' }}>
@@ -128,7 +128,7 @@ export default async function LandingPage() {
       <section id="features" className="bg-muted/30 border-y border-border/50 py-24 px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16 animate-slide-up" style={{ animationDelay: '200ms' }}>
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-4">Everything you need. Nothing you don't.</h2>
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-4">Everything you need. Nothing you don&apos;t.</h2>
             <p className="text-muted-foreground text-lg">We stripped away the confusing charts and endless dropdowns to give you exactly what matters: extreme visibility.</p>
           </div>
 

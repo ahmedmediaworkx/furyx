@@ -4,7 +4,7 @@ import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
-import { ChevronDown, LogOut, Moon, Palette, Settings2, Sun } from "lucide-react";
+import { ChevronDown, LogOut, Moon, Settings2, Sun } from "lucide-react";
 import { getRoleLabel } from "@/lib/roles";
 
 export function UserNav() {

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { listBoardsForUser } from "@/server/services/board-service";
-import { LayoutDashboard, Clock, Star, Plus } from "lucide-react";
+import { LayoutDashboard, Clock, Star } from "lucide-react";
 import { CreateBoardDialog } from "@/components/board/create-board-dialog";
 
 export default async function DashboardPage() {

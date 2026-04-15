@@ -6,53 +6,102 @@ import { Board } from "../../models/Board";
 import { BoardInvite } from "../../models/BoardInvite";
 import { User } from "../../models/User";
 import { emitBoardEvent } from "../../lib/socket-state";
+import { formatDate } from "../../lib/date";
 import type { AuthenticatedUser } from "./next-auth.guard";
+import { Types } from "mongoose";
 
 function isWorkspaceManager(role: UserRole) {
   return role === "owner" || role === "admin";
 }
 
-function isBoardParticipant(board: any, userId: string) {
-  const ownerId = board.ownerId?.toString?.() ?? String(board.ownerId);
-  const memberIds = (board.memberIds ?? []).map((member: any) => member?.toString?.() ?? String(member));
+type IdValue = Types.ObjectId | string;
+
+type UserRecord = {
+  _id: IdValue;
+  profile?: {
+    displayName?: string;
+  };
+  contact?: {
+    email?: string;
+  };
+  role?: UserRole;
+};
+
+type BoardRecord = {
+  _id: IdValue;
+  name: string;
+  description?: string;
+  ownerId: IdValue | UserRecord;
+  memberIds?: Array<IdValue | UserRecord>;
+  createdAt?: Date | string;
+  populate: (path: string, select?: string) => Promise<unknown>;
+};
+
+type InviteRecord = {
+  _id: IdValue;
+  boardId: IdValue;
+  email: string;
+  message: string;
+  status: string;
+  token: string;
+  invitedById: IdValue;
+  acceptedById: IdValue | null;
+  expiresAt: Date;
+  createdAt?: Date | string;
+  save: () => Promise<InviteRecord>;
+};
+
+function toId(value: IdValue | UserRecord) {
+  return typeof value === "object" ? value._id.toString() : value.toString();
+}
+
+function isPopulatedUser(value: IdValue | UserRecord): value is UserRecord {
+  return typeof value === "object" && value !== null && "_id" in value;
+}
+
+function isBoardParticipant(board: BoardRecord, userId: string) {
+  const ownerId = toId(board.ownerId);
+  const memberIds = (board.memberIds ?? []).map((member: IdValue | UserRecord) => toId(member));
   return ownerId === userId || memberIds.includes(userId);
 }
 
 @Injectable()
 export class TeamService {
-  private toId(value: any) {
-    return value?.toString?.() ?? String(value);
+  private toId(value: IdValue | UserRecord) {
+    return toId(value);
   }
 
-  private serializeBoard(board: any) {
+  private serializeBoard(board: BoardRecord) {
+    const owner = isPopulatedUser(board.ownerId) ? board.ownerId : null;
+
     return {
       _id: this.toId(board._id),
       name: board.name,
       description: board.description,
-      ownerId: board.ownerId?._id ? this.toId(board.ownerId._id) : this.toId(board.ownerId),
-      owner: board.ownerId?._id
+      ownerId: owner ? this.toId(owner._id) : this.toId(board.ownerId),
+      owner: owner
         ? {
-            id: this.toId(board.ownerId._id),
-            name: board.ownerId.profile?.displayName ?? board.ownerId.contact?.email ?? "User",
-            email: board.ownerId.contact?.email ?? "",
-            role: board.ownerId.role ?? "member"
+            id: this.toId(owner._id),
+            name: owner.profile?.displayName ?? owner.contact?.email ?? "User",
+            email: owner.contact?.email ?? "",
+            role: owner.role ?? "member"
           }
         : null,
       memberCount: board.memberIds?.length ?? 0,
-      createdAt: board.createdAt?.toISOString?.() ?? board.createdAt
+          createdAt: formatDate(board.createdAt) ?? undefined
     };
   }
 
-  private serializeMember(member: any) {
+  private serializeMember(member: IdValue | UserRecord) {
     return {
-      id: this.toId(member._id),
-      name: member.profile?.displayName ?? member.contact?.email ?? "User",
-      email: member.contact?.email ?? "",
-      role: member.role ?? "member"
+      id: this.toId(member),
+      name: isPopulatedUser(member) ? member.profile?.displayName ?? member.contact?.email ?? "User" : "User",
+      email: isPopulatedUser(member) ? member.contact?.email ?? "" : "",
+      role: isPopulatedUser(member) ? member.role ?? "member" : "member"
     };
   }
 
-  private serializeInvite(invite: any) {
+  private serializeInvite(invite: InviteRecord) {
     return {
       id: this.toId(invite._id),
       boardId: this.toId(invite.boardId),
@@ -62,8 +111,8 @@ export class TeamService {
       token: invite.token,
       invitedById: this.toId(invite.invitedById),
       acceptedById: invite.acceptedById ? this.toId(invite.acceptedById) : null,
-      expiresAt: invite.expiresAt?.toISOString?.() ?? invite.expiresAt,
-      createdAt: invite.createdAt?.toISOString?.() ?? invite.createdAt
+      expiresAt: formatDate(invite.expiresAt) ?? undefined,
+      createdAt: formatDate(invite.createdAt) ?? undefined
     };
   }
 
@@ -99,22 +148,22 @@ export class TeamService {
 
     return {
       user,
-      boards: boards.map((board) => this.serializeBoard(board)),
-      invites: invites.map((invite) => this.serializeInvite(invite))
+      boards: (boards as BoardRecord[]).map((board) => this.serializeBoard(board)),
+      invites: (invites as InviteRecord[]).map((invite) => this.serializeInvite(invite))
     };
   }
 
   async getBoardTeam(user: AuthenticatedUser, boardId: string) {
     await connectDB();
-    const board = await this.ensureBoardAccess(boardId, user);
+    const board = (await this.ensureBoardAccess(boardId, user)) as BoardRecord;
 
     await board.populate("ownerId", "profile contact role");
     await board.populate("memberIds", "profile contact role");
 
-    const invites = await BoardInvite.find({ boardId }).sort({ createdAt: -1 });
+    const invites = (await BoardInvite.find({ boardId }).sort({ createdAt: -1 })) as InviteRecord[];
     const members = [board.ownerId, ...(board.memberIds ?? [])]
       .filter(Boolean)
-      .map((member: any) => this.serializeMember(member));
+      .map((member: IdValue | UserRecord) => this.serializeMember(member));
 
     return {
       board: this.serializeBoard(board),

@@ -5,23 +5,56 @@ import type { UserRole } from "@/lib/roles";
 import { Board } from "@/models/Board";
 import { Column } from "@/models/Column";
 import { Task } from "@/models/Task";
+import { formatDate } from "@/lib/date";
 import { boardSchema } from "@/lib/validators";
+import type { TaskPriority } from "@/types/board";
 
-function toId(value: Types.ObjectId | string) {
+type IdValue = Types.ObjectId | string;
+
+type BoardRecord = {
+  _id: IdValue;
+  name: string;
+  description?: string;
+  ownerId: IdValue;
+  memberIds?: IdValue[];
+  createdAt?: Date | string;
+};
+
+type ColumnRecord = {
+  _id: IdValue;
+  boardId: IdValue;
+  name: string;
+  order: number;
+};
+
+type TaskRecord = {
+  _id: IdValue;
+  boardId: IdValue;
+  columnId: IdValue;
+  title: string;
+  description?: string;
+  order: number;
+  priority?: TaskPriority;
+  labels?: string[];
+  assigneeId?: IdValue | null;
+  dueDate?: Date | string | null;
+};
+
+function toId(value: IdValue) {
   return value.toString();
 }
 
-function serializeBoard(board: any) {
+function serializeBoard(board: BoardRecord) {
   return {
     _id: toId(board._id),
     name: board.name,
     description: board.description,
     ownerId: toId(board.ownerId),
-    createdAt: board.createdAt?.toISOString?.() ?? board.createdAt
+    createdAt: formatDate(board.createdAt) ?? undefined
   };
 }
 
-function serializeColumn(column: any) {
+function serializeColumn(column: ColumnRecord) {
   return {
     _id: toId(column._id),
     boardId: toId(column.boardId),
@@ -30,7 +63,7 @@ function serializeColumn(column: any) {
   };
 }
 
-function serializeTask(task: any) {
+function serializeTask(task: TaskRecord) {
   return {
     _id: toId(task._id),
     boardId: toId(task.boardId),
@@ -38,10 +71,10 @@ function serializeTask(task: any) {
     title: task.title,
     description: task.description,
     order: task.order,
-    priority: task.priority,
+    priority: (task.priority ?? "medium") as TaskPriority,
     labels: task.labels ?? [],
     assigneeId: task.assigneeId ? toId(task.assigneeId) : null,
-    dueDate: task.dueDate ? task.dueDate.toISOString?.() ?? task.dueDate : null
+    dueDate: formatDate(task.dueDate)
   };
 }
 
@@ -52,7 +85,7 @@ export async function assertBoardAccess(boardId: string, userId: string) {
   }
 
   const isOwner = toId(board.ownerId) === userId;
-  const isMember = (board.memberIds ?? []).some((member: any) => toId(member) === userId);
+  const isMember = (board.memberIds ?? []).some((member: IdValue) => toId(member) === userId);
 
   if (!isOwner && !isMember) {
     throw new Error("You do not have access to this board");

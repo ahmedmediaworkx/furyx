@@ -51,7 +51,18 @@ const UserSchema = new Schema(
   }
 );
 
-UserSchema.virtual("name").get(function getDisplayName(this: any) {
+type UserNameVirtual = {
+  profile?: {
+    displayName?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  contact?: {
+    email?: string;
+  };
+};
+
+UserSchema.virtual("name").get(function getDisplayName(this: UserNameVirtual) {
   return this.profile?.displayName || [this.profile?.firstName, this.profile?.lastName].filter(Boolean).join(" ").trim() || this.contact?.email || "";
 });
 

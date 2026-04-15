@@ -57,7 +57,7 @@ export function BoardColumnView({ column, tasks }: ColumnProps) {
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 p-8 text-center transition-all hover:border-border">
             <p className="text-sm font-bold text-foreground">Ready to start?</p>
-            <p className="text-sm font-medium text-muted-foreground mt-1">Drag a task here or click 'New Task' to get moving.</p>
+            <p className="text-sm font-medium text-muted-foreground mt-1">Drag a task here or click &apos;New Task&apos; to get moving.</p>
           </div>
         ) : null}
       </div>

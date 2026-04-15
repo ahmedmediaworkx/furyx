@@ -2,16 +2,33 @@ import { connectDB } from "@/lib/db";
 import { canEditWorkspace } from "@/lib/permissions";
 import type { UserRole } from "@/lib/roles";
 import { assertBoardAccess } from "@/server/services/board-service";
-import { Board } from "@/models/Board";
 import { Column } from "@/models/Column";
 import { Task } from "@/models/Task";
+import { formatDate } from "@/lib/date";
 import { taskMoveSchema, taskSchema } from "@/lib/validators";
+import type { TaskPriority } from "@/types/board";
+import { Types } from "mongoose";
 
-function toId(value: any) {
+type IdValue = Types.ObjectId | string;
+
+type TaskRecord = {
+  _id: IdValue;
+  boardId: IdValue;
+  columnId: IdValue;
+  title: string;
+  description?: string;
+  order: number;
+  priority?: TaskPriority;
+  labels?: string[];
+  assigneeId?: IdValue | null;
+  dueDate?: Date | string | null;
+};
+
+function toId(value: IdValue) {
   return value.toString();
 }
 
-function serializeTask(task: any) {
+function serializeTask(task: TaskRecord) {
   return {
     _id: toId(task._id),
     boardId: toId(task.boardId),
@@ -19,10 +36,10 @@ function serializeTask(task: any) {
     title: task.title,
     description: task.description,
     order: task.order,
-    priority: task.priority,
+    priority: (task.priority ?? "medium") as TaskPriority,
     labels: task.labels ?? [],
     assigneeId: task.assigneeId ? toId(task.assigneeId) : null,
-    dueDate: task.dueDate ? task.dueDate.toISOString?.() ?? task.dueDate : null
+    dueDate: formatDate(task.dueDate)
   };
 }
 
@@ -32,7 +49,7 @@ function assertCanEditBoard(userRole: UserRole) {
   }
 }
 
-export async function createTask(userId: string, userRole: UserRole, input: any) {
+export async function createTask(userId: string, userRole: UserRole, input: unknown) {
   await connectDB();
   const parsed = taskSchema.parse(input);
   await assertBoardAccess(parsed.boardId, userId);
@@ -55,7 +72,7 @@ export async function createTask(userId: string, userRole: UserRole, input: any)
 
 export async function updateTask(userId: string, userRole: UserRole, taskId: string, input: Record<string, unknown>) {
   await connectDB();
-  const task = await Task.findById(taskId);
+  const task = (await Task.findById(taskId)) as TaskRecord | null;
   if (!task) {
     throw new Error("Task not found");
   }
@@ -89,7 +106,7 @@ export async function updateTask(userId: string, userRole: UserRole, taskId: str
 
 export async function deleteTask(userId: string, userRole: UserRole, taskId: string) {
   await connectDB();
-  const task = await Task.findById(taskId);
+  const task = (await Task.findById(taskId)) as TaskRecord | null;
   if (!task) {
     throw new Error("Task not found");
   }

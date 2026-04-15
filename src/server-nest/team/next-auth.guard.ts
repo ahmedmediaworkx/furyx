@@ -15,8 +15,8 @@ export interface AuthenticatedUser {
 export class NextAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    const userId = (token as any)?.id || token?.sub;
+    const token = (await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })) as { id?: string; sub?: string } | null;
+    const userId = token?.id || token?.sub;
 
     if (!userId) {
       throw new UnauthorizedException("Sign in to access team features");

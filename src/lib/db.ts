@@ -51,8 +51,10 @@ async function cleanupLegacyUserIndexes() {
     if (legacyEmailIndex) {
       await User.collection.dropIndex("email_1");
     }
-  } catch (error: any) {
-    if (error?.codeName === "IndexNotFound" || error?.code === 27) {
+  } catch (error: unknown) {
+    const legacyError = error as { codeName?: string; code?: number };
+
+    if (legacyError.codeName === "IndexNotFound" || legacyError.code === 27) {
       return;
     }
 

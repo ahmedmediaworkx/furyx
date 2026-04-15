@@ -27,7 +27,7 @@ export async function bootstrap() {
 
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(server), {
     bodyParser: false
-  } as any);
+  });
 
   nestApp.enableCors({
     origin: process.env.NEXTAUTH_URL || "http://localhost:3000",
